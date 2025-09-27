@@ -25,7 +25,7 @@ const formSchema = z.object({
   amount: z.coerce.number<number>().min(0.01),
 });
 
-export function LeaveTipButton() {
+export function GetTokensButton() {
   const currentAccount = useCurrentAccount();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -44,12 +44,12 @@ export function LeaveTipButton() {
     <Dialog>
       <DialogTrigger asChild>
         <Button>
-          Leave a tip <CoffeeIcon />
+          Get tokens <CoffeeIcon />
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Leave a tip</DialogTitle>
+          <DialogTitle>Get tokens</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
@@ -67,7 +67,7 @@ export function LeaveTipButton() {
                 </FormItem>
               )}
             />
-            <Button type="submit">Pay</Button>
+            <Button type="submit">Get</Button>
           </form>
         </Form>
       </DialogContent>

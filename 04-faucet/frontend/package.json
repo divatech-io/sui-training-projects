@@ -1,5 +1,5 @@
 {
-  "name": "tip-jar-frontend",
+  "name": "faucet-frontend",
   "private": true,
   "type": "module",
   "scripts": {
