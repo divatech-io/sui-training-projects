@@ -1,1 +1,5 @@
-/* TODO: Export TanStack Query Client */
+import { QueryClient } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
+
+export { queryClient };
