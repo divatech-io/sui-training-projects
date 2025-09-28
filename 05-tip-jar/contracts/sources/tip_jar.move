@@ -23,6 +23,10 @@ public entry fun receive_sui(tip_jar: &mut TipJar, coin: Coin<SUI>) {
     transfer::public_transfer(coin, tip_jar.owner);
 }
 
+public fun total(tip_jar: &TipJar): u64 {
+    tip_jar.total
+}
+
 #[test_only]
 public fun init_for_test(ctx: &mut TxContext) {
     init(ctx);
