@@ -6,7 +6,7 @@ import {
   DialogTitle,
 } from "./ui/dialog";
 import { Button } from "./ui/button";
-import { DownloadIcon } from "lucide-react";
+import { SendIcon } from "lucide-react";
 import { useCurrentAccount } from "@mysten/dapp-kit";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -22,15 +22,15 @@ import {
 import { Input } from "./ui/input";
 
 const formSchema = z.object({
-  amount: z.coerce.number<number>().min(0.01),
+  message: z.string().min(3).max(100),
 });
 
-export function GetTokensButton() {
+export function SendMessageButton() {
   const currentAccount = useCurrentAccount();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      amount: 0.01,
+      message: "",
     },
   });
 
@@ -44,30 +44,30 @@ export function GetTokensButton() {
     <Dialog>
       <DialogTrigger asChild>
         <Button>
-          Get tokens <DownloadIcon />
+          Send a message <SendIcon />
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Get tokens</DialogTitle>
+          <DialogTitle>Send a message</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="amount"
+              name="message"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Amount</FormLabel>
+                  <FormLabel>Message</FormLabel>
                   <FormControl>
-                    <Input placeholder="0.01" {...field} />
+                    <Input placeholder="Pretty message..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button type="submit">Get</Button>
+            <Button type="submit">Send</Button>
           </form>
         </Form>
       </DialogContent>

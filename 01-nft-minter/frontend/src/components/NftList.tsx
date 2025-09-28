@@ -18,7 +18,7 @@ export function NftList() {
   if (!nfts.length) return <div>You haven't minted any NFTs yet 😔</div>;
 
   return (
-    <div className="w-full flex-wrap gap-2 grid grid-cols-2 sm:grid-cols-4">
+    <div className="w-full gap-2 grid grid-cols-2 sm:grid-cols-4">
       {nfts.map((nft, index) => (
         <NftListItem key={index} src={nft} />
       ))}
