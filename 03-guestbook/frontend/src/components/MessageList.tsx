@@ -1,29 +1,47 @@
-export function MessageList() {
-  const messages: string[] = [
-    "Hello guys",
-    "How are you?",
-    "Where are my Sui tokens",
-  ];
+import { useMessageByIdQuery } from "@/hooks/useMessageByIdQuery";
+import { useMessageIdsQuery } from "@/hooks/useMessageIdsQuery";
+import { LoaderCircleIcon } from "lucide-react";
 
-  if (!messages.length) return <div>You haven't minted any NFTs yet 😔</div>;
+export function MessageList() {
+  const messagesObjectIdQuery = useMessageIdsQuery({
+    parentId:
+      "0x8d6896d8d301199c03807fd0de93e15014ea2c65100c1736824b4d1aa89dc746",
+  });
+
+  if (messagesObjectIdQuery.isPending)
+    return <LoaderCircleIcon className="animate-spin" />;
+
+  if (messagesObjectIdQuery.isError) return <div>Smth. went wrong ⛔</div>;
+
+  const messagesObjectId = messagesObjectIdQuery.data.data;
+  if (!messagesObjectId.length)
+    return <div>There are no messages in guestbook 😔</div>;
 
   return (
     <div className="w-full flex flex-col gap-2">
-      {messages.map((message, index) => (
-        <MessageListItem key={index} src={message} />
+      {messagesObjectId.map((id) => (
+        <MessageListItem key={id} id={id} />
       ))}
     </div>
   );
 }
 
 type MessageListItemProps = {
-  src: string;
+  id: string;
 };
 
-function MessageListItem({ src }: MessageListItemProps) {
+function MessageListItem({ id }: MessageListItemProps) {
+  const messageByIdQuery = useMessageByIdQuery({ id });
+
   return (
-    <div className="rounded-md overflow-hidden border w-full px-3 py-2 wrap-normal">
-      {src}
+    <div className="rounded-md overflow-hidden border w-full px-3 py-2 wrap-normal empty:hidden">
+      {messageByIdQuery.isPending ? (
+        <LoaderCircleIcon className="animate-spin" />
+      ) : messageByIdQuery.isError ? (
+        "Smth. went wrong ⛔"
+      ) : (
+        messageByIdQuery.data
+      )}
     </div>
   );
 }

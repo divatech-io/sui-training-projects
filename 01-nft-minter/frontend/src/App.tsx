@@ -3,7 +3,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./config/tanstack-query";
 import { networkConfig } from "./config/network";
 import { ThemeProvider } from "./components/ui/theme-provider";
-import { MainPage } from "./components/MainPage";
+import { MainPage } from "./pages/MainPage";
 
 export function App() {
   return (

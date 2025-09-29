@@ -3,7 +3,7 @@ import { Button } from "./ui/button";
 import { PlusIcon } from "lucide-react";
 import {
   useCurrentAccount,
-  useSignTransaction,
+  useSignAndExecuteTransaction,
   useSuiClient,
 } from "@mysten/dapp-kit";
 import { z } from "zod";
@@ -28,9 +28,10 @@ const formSchema = z.object({
 });
 
 export function MintNftButton() {
-  const signTransactionMutation = useSignTransaction();
-  const client = useSuiClient();
   const queryClient = useQueryClient();
+
+  const signAndExecuteTransactionMutation = useSignAndExecuteTransaction();
+  const suiClient = useSuiClient();
   const currentAccount = useCurrentAccount();
 
   const dialog = useDisclosure();
@@ -56,27 +57,20 @@ export function MintNftButton() {
       ],
     });
 
-    const { bytes, signature, reportTransactionEffects } =
-      await signTransactionMutation.mutateAsync({
+    signAndExecuteTransactionMutation.mutate(
+      {
         transaction: tx,
         chain: "sui:testnet",
-      });
-
-    const executeResult = await client.executeTransactionBlock({
-      transactionBlock: bytes,
-      signature,
-      options: {
-        showRawEffects: true,
       },
-    });
+      {
+        onSuccess: (tx) => {
+          suiClient.waitForTransaction({ digest: tx.digest }).then(async () => {
+            await queryClient.refetchQueries();
+          });
+        },
+      }
+    );
 
-    if (executeResult.rawEffects) {
-      reportTransactionEffects(
-        Buffer.from(executeResult.rawEffects).toString()
-      );
-    }
-
-    queryClient.invalidateQueries();
     dialog.onClose();
   }
 
@@ -123,7 +117,7 @@ export function MintNftButton() {
                 )}
               />
               <Button
-                disabled={signTransactionMutation.isPending}
+                disabled={signAndExecuteTransactionMutation.isPending}
                 type="submit"
               >
                 Mint

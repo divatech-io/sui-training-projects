@@ -1,8 +1,8 @@
 import { useCurrentAccount } from "@mysten/dapp-kit";
-import { ConnectButton } from "./ConnectButton";
-import { MintNftButton } from "./MintNftButton";
-import { NftList } from "./NftList";
-import { ThemeToggle } from "./ui/theme-toggle";
+import { ConnectButton } from "@/components/ConnectButton";
+import { MintNftButton } from "@/components/MintNftButton";
+import { NftList } from "@/components/NftList";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export function MainPage() {
   const currentAccount = useCurrentAccount();

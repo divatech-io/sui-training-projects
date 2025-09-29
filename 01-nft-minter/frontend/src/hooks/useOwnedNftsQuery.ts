@@ -16,12 +16,10 @@ export function useOwnedNftsQuery({ owner }: { owner: string }) {
         ],
       },
       options: {
-        showBcs: true,
         showContent: true,
       },
     },
     {
-      refetchInterval: 1000 * 10,
       select: (paginatedData) => {
         return {
           ...paginatedData,
