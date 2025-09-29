@@ -21,6 +21,7 @@ import { Input } from "./ui/input";
 import { Transaction } from "@mysten/sui/transactions";
 import useDisclosure from "@/hooks/useDisclosure";
 import { useQueryClient } from "@tanstack/react-query";
+import { NFT_MINTER_PACKAGE_OBJECT_ID } from "@/config/objects";
 
 const formSchema = z.object({
   photoUrl: z.url(),
@@ -49,8 +50,7 @@ export function MintNftButton() {
 
     const tx = new Transaction();
     tx.moveCall({
-      target:
-        "0x3a11a1a2c85f62b9b461949b840568c026e518200bd3ccdd872cfa4e4ba188ad::nft::mint",
+      target: `${NFT_MINTER_PACKAGE_OBJECT_ID}::nft::mint`,
       arguments: [
         tx.pure.string(variables.name),
         tx.pure.string(variables.photoUrl),

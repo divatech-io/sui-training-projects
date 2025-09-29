@@ -21,6 +21,10 @@ import { Input } from "./ui/input";
 import useDisclosure from "@/hooks/useDisclosure";
 import { Transaction } from "@mysten/sui/transactions";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  GUESTBOOK_PACKAGE_OBJECT_ID,
+  GUESTBOOK_OBJECT_ID,
+} from "@/config/objects";
 
 const formSchema = z.object({
   message: z.string().min(3).max(99),
@@ -47,12 +51,10 @@ export function SendMessageButton() {
 
     const tx = new Transaction();
     tx.moveCall({
-      target:
-        "0xfb37e62cb463f5c26e6b39d9b90efc20c68b1803a884bb40e5fc93c8acf1e036::guestbook::leave_message",
+      target: `${GUESTBOOK_PACKAGE_OBJECT_ID}::guestbook::leave_message`,
       arguments: [
         tx.sharedObjectRef({
-          objectId:
-            "0x8d6896d8d301199c03807fd0de93e15014ea2c65100c1736824b4d1aa89dc746",
+          objectId: GUESTBOOK_OBJECT_ID,
           mutable: true,
           initialSharedVersion: "349179980",
         }),

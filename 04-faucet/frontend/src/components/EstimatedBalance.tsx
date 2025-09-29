@@ -2,11 +2,11 @@ import { SuiIcon } from "./ui/icons";
 import { LoaderCircle } from "lucide-react";
 import { fromMist } from "@/lib/sui";
 import { useEstimatedBalanceQuery } from "@/hooks/useEstimatedBalanceQuery";
+import { FAUCET_OBJECT_ID } from "@/config/objects";
 
 export function EstimatedBalance() {
   const estimatedBalanceQuery = useEstimatedBalanceQuery({
-    faucet:
-      "0x832c9292a54c0b2b2a20ff328c02bb212990c2c3d9dc22ba9caf7b85162483be",
+    faucet: FAUCET_OBJECT_ID,
   });
 
   if (estimatedBalanceQuery.isPending)

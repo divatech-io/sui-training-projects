@@ -1,11 +1,11 @@
 import { useSuiClientQuery } from "@mysten/dapp-kit";
 import type { DynamicFieldInfo } from "@mysten/sui/client";
 
-export function useMessageIdsQuery({ parentId }: { parentId: string }) {
+export function useMessageIdsQuery({ guestbook }: { guestbook: string }) {
   return useSuiClientQuery(
     "getDynamicFields",
     {
-      parentId,
+      parentId: guestbook,
     },
     {
       select: (paginatedData) => {

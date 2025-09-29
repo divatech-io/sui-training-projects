@@ -1,11 +1,11 @@
 import type { SuiMessage } from "@/types";
 import { useSuiClientQuery } from "@mysten/dapp-kit";
 
-export function useMessageByIdQuery({ id }: { id: string }) {
+export function useMessageByIdQuery({ objectId }: { objectId: string }) {
   return useSuiClientQuery(
     "getObject",
     {
-      id,
+      id: objectId,
       options: {
         showContent: true,
       },

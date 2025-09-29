@@ -21,6 +21,7 @@ import { Input } from "./ui/input";
 import useDisclosure from "@/hooks/useDisclosure";
 import { useQueryClient } from "@tanstack/react-query";
 import { Transaction } from "@mysten/sui/transactions";
+import { FAUCET_OBJECT_ID, FAUCET_PACKAGE_OBJECT_ID } from "@/config/objects";
 
 const formSchema = z.object({
   amount: z.coerce.number<number>().min(0.01),
@@ -49,12 +50,10 @@ export function TopUpFaucetButton() {
     const coin = tx.splitCoins(tx.gas, [variables.amount * 1000000000]);
 
     tx.moveCall({
-      target:
-        "0x71909abc4133f661f1dc8aefeae962f6661dacaa3b4bbd739e3b7c6cd5520d1b::faucet::top_up_faucet",
+      target: `${FAUCET_PACKAGE_OBJECT_ID}::faucet::top_up_faucet`,
       arguments: [
         tx.sharedObjectRef({
-          objectId:
-            "0x832c9292a54c0b2b2a20ff328c02bb212990c2c3d9dc22ba9caf7b85162483be",
+          objectId: FAUCET_OBJECT_ID,
           mutable: true,
           initialSharedVersion: "349179981",
         }),

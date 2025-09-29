@@ -1,11 +1,11 @@
+import { GUESTBOOK_OBJECT_ID } from "@/config/objects";
 import { useMessageByIdQuery } from "@/hooks/useMessageByIdQuery";
 import { useMessageIdsQuery } from "@/hooks/useMessageIdsQuery";
 import { LoaderCircleIcon } from "lucide-react";
 
 export function MessageList() {
   const messagesObjectIdQuery = useMessageIdsQuery({
-    parentId:
-      "0x8d6896d8d301199c03807fd0de93e15014ea2c65100c1736824b4d1aa89dc746",
+    guestbook: GUESTBOOK_OBJECT_ID,
   });
 
   if (messagesObjectIdQuery.isPending)
@@ -19,19 +19,19 @@ export function MessageList() {
 
   return (
     <div className="w-full flex flex-col gap-2">
-      {messagesObjectId.map((id) => (
-        <MessageListItem key={id} id={id} />
+      {messagesObjectId.map((objectId) => (
+        <MessageListItem key={objectId} objectId={objectId} />
       ))}
     </div>
   );
 }
 
 type MessageListItemProps = {
-  id: string;
+  objectId: string;
 };
 
-function MessageListItem({ id }: MessageListItemProps) {
-  const messageByIdQuery = useMessageByIdQuery({ id });
+function MessageListItem({ objectId }: MessageListItemProps) {
+  const messageByIdQuery = useMessageByIdQuery({ objectId });
 
   return (
     <div className="rounded-md overflow-hidden border w-full px-3 py-2 wrap-normal empty:hidden">

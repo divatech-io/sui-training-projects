@@ -22,6 +22,7 @@ import useDisclosure from "@/hooks/useDisclosure";
 import { useQueryClient } from "@tanstack/react-query";
 import { Transaction } from "@mysten/sui/transactions";
 import { toMist } from "@/lib/sui";
+import { TIP_JAR_OBJECT_ID, TIP_JAR_PACKAGE_OBJECT_ID } from "@/config/objects";
 
 const formSchema = z.object({
   amount: z.coerce.number<number>().min(0.01),
@@ -50,12 +51,10 @@ export function LeaveTipButton() {
     const coin = tx.splitCoins(tx.gas, [toMist(variables.amount)]);
 
     tx.moveCall({
-      target:
-        "0x36e950c4d1a0dbfc93882769350bf04fe76a40ab7208e8d6b689496e55a2fa50::tip_jar::receive_sui",
+      target: `${TIP_JAR_PACKAGE_OBJECT_ID}::tip_jar::receive_sui`,
       arguments: [
         tx.sharedObjectRef({
-          objectId:
-            "0xe862e8b1e73b0363bbd581b21b9a3a9c72932ffc7971e8a663417b96a41aebea",
+          objectId: TIP_JAR_OBJECT_ID,
           mutable: true,
           initialSharedVersion: "349179978",
         }),

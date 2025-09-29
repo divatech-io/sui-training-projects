@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Transaction } from "@mysten/sui/transactions";
 import type { WalletAccount } from "@mysten/wallet-standard";
 import { useIsAlreadyClaimedQuery } from "@/hooks/useIsAlreadyClaimedQuery";
+import { FAUCET_OBJECT_ID, FAUCET_PACKAGE_OBJECT_ID } from "@/config/objects";
 
 type GetTokensButtonProps = {
   account: WalletAccount;
@@ -17,8 +18,7 @@ export function GetTokensButton({ account }: GetTokensButtonProps) {
   const suiClient = useSuiClient();
 
   const isAlreadyClaimedQuery = useIsAlreadyClaimedQuery({
-    faucet:
-      "0x832c9292a54c0b2b2a20ff328c02bb212990c2c3d9dc22ba9caf7b85162483be",
+    faucet: FAUCET_OBJECT_ID,
     account: account.address,
   });
 
@@ -26,12 +26,10 @@ export function GetTokensButton({ account }: GetTokensButtonProps) {
     const tx = new Transaction();
 
     tx.moveCall({
-      target:
-        "0x71909abc4133f661f1dc8aefeae962f6661dacaa3b4bbd739e3b7c6cd5520d1b::faucet::get_tokes",
+      target: `${FAUCET_PACKAGE_OBJECT_ID}::faucet::get_tokes`,
       arguments: [
         tx.sharedObjectRef({
-          objectId:
-            "0x832c9292a54c0b2b2a20ff328c02bb212990c2c3d9dc22ba9caf7b85162483be",
+          objectId: FAUCET_OBJECT_ID,
           mutable: true,
           initialSharedVersion: "349179981",
         }),
