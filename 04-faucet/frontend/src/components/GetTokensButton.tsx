@@ -1,23 +1,28 @@
 import { Button } from "./ui/button";
-import { DownloadIcon } from "lucide-react";
-import {
-  useCurrentAccount,
-  useSignAndExecuteTransaction,
-  useSuiClient,
-} from "@mysten/dapp-kit";
+import { DownloadIcon, LoaderCircleIcon, XCircleIcon } from "lucide-react";
+import { useSignAndExecuteTransaction, useSuiClient } from "@mysten/dapp-kit";
 import { useQueryClient } from "@tanstack/react-query";
 import { Transaction } from "@mysten/sui/transactions";
+import type { WalletAccount } from "@mysten/wallet-standard";
+import { useIsAlreadyClaimedQuery } from "@/hooks/useIsAlreadyClaimedQuery";
 
-export function GetTokensButton() {
+type GetTokensButtonProps = {
+  account: WalletAccount;
+};
+
+export function GetTokensButton({ account }: GetTokensButtonProps) {
   const queryClient = useQueryClient();
 
   const signAndExecuteTransactionMutation = useSignAndExecuteTransaction();
   const suiClient = useSuiClient();
-  const currentAccount = useCurrentAccount();
+
+  const isAlreadyClaimedQuery = useIsAlreadyClaimedQuery({
+    faucet:
+      "0x832c9292a54c0b2b2a20ff328c02bb212990c2c3d9dc22ba9caf7b85162483be",
+    account: account.address,
+  });
 
   function onClick() {
-    if (!currentAccount) return;
-
     const tx = new Transaction();
 
     tx.moveCall({
@@ -48,7 +53,15 @@ export function GetTokensButton() {
     );
   }
 
-  if (!currentAccount) return null;
+  if (isAlreadyClaimedQuery.isPending)
+    return <LoaderCircleIcon className="animate-spin" />;
+  if (isAlreadyClaimedQuery.isError)
+    return (
+      <Button variant={"destructive"}>
+        Error <XCircleIcon />
+      </Button>
+    );
+  if (isAlreadyClaimedQuery.data) return <Button disabled>Claimed</Button>;
 
   return (
     <Button onClick={onClick}>

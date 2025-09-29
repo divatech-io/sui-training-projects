@@ -13,7 +13,7 @@ export function MainPage() {
       <div className="mx-auto @3xl:w-[48rem] @3xl:px-0 p-4 gap-y-8 relative flex flex-col items-center">
         <div className="flex flex-wrap gap-2">
           <ConnectButton />
-          {currentAccount && <GetTokensButton />}
+          {currentAccount && <GetTokensButton account={currentAccount} />}
           {currentAccount && <TopUpFaucetButton />}
           <ThemeToggle />
         </div>
