@@ -2,32 +2,16 @@ import { SuiClientProvider, WalletProvider } from "@mysten/dapp-kit";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./config/tanstack-query";
 import { networkConfig } from "./config/network";
-import { ConnectButton } from "./components/ConnectButton";
-import { TotalAmount } from "./components/TotalAmount";
 import { ThemeProvider } from "./components/ui/theme-provider";
-import { LeaveTipButton } from "./components/LeaveTipButton";
-import { ThemeToggle } from "./components/ui/theme-toggle";
+import { MainPage } from "./pages/MainPage";
 
 export function App() {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <QueryClientProvider client={queryClient}>
-        <SuiClientProvider networks={networkConfig} defaultNetwork="localnet">
+        <SuiClientProvider networks={networkConfig} defaultNetwork="testnet">
           <WalletProvider autoConnect>
-            <div className="@container">
-              <div className="mx-auto @3xl:w-[48rem] @3xl:px-0 p-4 gap-y-8 relative flex flex-col items-center">
-                <div className="flex flex-wrap gap-2">
-                  <ConnectButton />
-                  <LeaveTipButton />
-                  <ThemeToggle />
-                </div>
-
-                <div className="flex flex-col items-center gap-1">
-                  <div className="text-sm">Total amount</div>
-                  <TotalAmount />
-                </div>
-              </div>
-            </div>
+            <MainPage />
           </WalletProvider>
         </SuiClientProvider>
       </QueryClientProvider>

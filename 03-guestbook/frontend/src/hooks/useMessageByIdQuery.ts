@@ -8,7 +8,6 @@ export function useMessageByIdQuery({ id }: { id: string }) {
       id,
       options: {
         showContent: true,
-        showBcs: true,
       },
     },
     {
