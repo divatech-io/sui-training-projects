@@ -1,6 +1,4 @@
-<!-- TODO: Replace "Homework" with chosen project name -->
-
-# Sui Training. Homework
+# Sui Training. Gusetbook
 
 ## Local setup
 

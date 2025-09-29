@@ -1,7 +1,7 @@
 import { useTotalAmountQuery } from "@/hooks/useTotalAmountQuery";
 import { SuiIcon } from "./ui/icons";
 import { LoaderCircle } from "lucide-react";
-import { fromNano } from "@/config/sui";
+import { fromMist } from "@/lib/sui";
 
 export function TotalAmount() {
   const totalAmountQuery = useTotalAmountQuery({
@@ -16,7 +16,7 @@ export function TotalAmount() {
 
   return (
     <div className="text-4xl font-bold">
-      {fromNano(totalAmountQuery.data)} <SuiIcon className="inline sixe-6" />
+      {fromMist(totalAmountQuery.data)} <SuiIcon className="inline sixe-6" />
     </div>
   );
 }

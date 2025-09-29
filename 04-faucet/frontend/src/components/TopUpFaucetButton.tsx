@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
-import { CoffeeIcon } from "lucide-react";
+import { UploadIcon } from "lucide-react";
 import {
   useCurrentAccount,
   useSignAndExecuteTransaction,
@@ -21,13 +21,12 @@ import { Input } from "./ui/input";
 import useDisclosure from "@/hooks/useDisclosure";
 import { useQueryClient } from "@tanstack/react-query";
 import { Transaction } from "@mysten/sui/transactions";
-import { toMist } from "@/lib/sui";
 
 const formSchema = z.object({
   amount: z.coerce.number<number>().min(0.01),
 });
 
-export function LeaveTipButton() {
+export function TopUpFaucetButton() {
   const queryClient = useQueryClient();
 
   const signAndExecuteTransactionMutation = useSignAndExecuteTransaction();
@@ -47,17 +46,17 @@ export function LeaveTipButton() {
     if (!currentAccount) return;
 
     const tx = new Transaction();
-    const coin = tx.splitCoins(tx.gas, [toMist(variables.amount)]);
+    const coin = tx.splitCoins(tx.gas, [variables.amount * 1000000000]);
 
     tx.moveCall({
       target:
-        "0x36e950c4d1a0dbfc93882769350bf04fe76a40ab7208e8d6b689496e55a2fa50::tip_jar::receive_sui",
+        "0x71909abc4133f661f1dc8aefeae962f6661dacaa3b4bbd739e3b7c6cd5520d1b::faucet::top_up_faucet",
       arguments: [
         tx.sharedObjectRef({
           objectId:
-            "0xe862e8b1e73b0363bbd581b21b9a3a9c72932ffc7971e8a663417b96a41aebea",
+            "0x832c9292a54c0b2b2a20ff328c02bb212990c2c3d9dc22ba9caf7b85162483be",
           mutable: true,
-          initialSharedVersion: "349179978",
+          initialSharedVersion: "349179981",
         }),
         tx.object(coin),
       ],
@@ -83,13 +82,13 @@ export function LeaveTipButton() {
   return (
     <>
       <Button onClick={dialog.onOpen}>
-        Leave a tip <CoffeeIcon />
+        Top Up Faucet <UploadIcon />
       </Button>
 
       <Dialog open={dialog.isOpen} onOpenChange={dialog.onOpenChange}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Leave a tip</DialogTitle>
+            <DialogTitle>Top Up Faucet</DialogTitle>
           </DialogHeader>
 
           <Form {...form}>
@@ -111,7 +110,7 @@ export function LeaveTipButton() {
                 disabled={signAndExecuteTransactionMutation.isPending}
                 type="submit"
               >
-                Pay
+                Top Up
               </Button>
             </form>
           </Form>
