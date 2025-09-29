@@ -1,13 +1,11 @@
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "./ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { PlusIcon } from "lucide-react";
-import { useCurrentAccount } from "@mysten/dapp-kit";
+import {
+  useCurrentAccount,
+  useSignTransaction,
+  useSuiClient,
+} from "@mysten/dapp-kit";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,6 +18,9 @@ import {
   FormMessage,
 } from "./ui/form";
 import { Input } from "./ui/input";
+import { Transaction } from "@mysten/sui/transactions";
+import useDisclosure from "@/hooks/useDisclosure";
+import { useQueryClient } from "@tanstack/react-query";
 
 const formSchema = z.object({
   photoUrl: z.url(),
@@ -27,7 +28,13 @@ const formSchema = z.object({
 });
 
 export function MintNftButton() {
+  const signTransactionMutation = useSignTransaction();
+  const client = useSuiClient();
+  const queryClient = useQueryClient();
   const currentAccount = useCurrentAccount();
+
+  const dialog = useDisclosure();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -36,59 +43,95 @@ export function MintNftButton() {
     },
   });
 
-  function onSubmit(variables: z.infer<typeof formSchema>) {
-    console.log(variables);
+  async function onSubmit(variables: z.infer<typeof formSchema>) {
+    if (!currentAccount) return;
+
+    const tx = new Transaction();
+    tx.moveCall({
+      target:
+        "0x3a11a1a2c85f62b9b461949b840568c026e518200bd3ccdd872cfa4e4ba188ad::nft::mint",
+      arguments: [
+        tx.pure.string(variables.name),
+        tx.pure.string(variables.photoUrl),
+      ],
+    });
+
+    const { bytes, signature, reportTransactionEffects } =
+      await signTransactionMutation.mutateAsync({
+        transaction: tx,
+        chain: "sui:testnet",
+      });
+
+    const executeResult = await client.executeTransactionBlock({
+      transactionBlock: bytes,
+      signature,
+      options: {
+        showRawEffects: true,
+      },
+    });
+
+    if (executeResult.rawEffects) {
+      reportTransactionEffects(
+        Buffer.from(executeResult.rawEffects).toString()
+      );
+    }
+
+    queryClient.invalidateQueries();
+    dialog.onClose();
   }
 
-  if (!currentAccount) return null;
-
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button>
-          Mint NFT <PlusIcon />
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Mint NFT</DialogTitle>
-        </DialogHeader>
+    <>
+      <Button onClick={dialog.onOpen}>
+        Mint NFT <PlusIcon />
+      </Button>
+      <Dialog open={dialog.isOpen} onOpenChange={dialog.onOpenChange}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Mint NFT</DialogTitle>
+          </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="photoUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Photo URL</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="https://example.com/image.png"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="My brand new NFT" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit">Mint</Button>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="photoUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Photo URL</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="https://example.com/image.png"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="My brand new NFT" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button
+                disabled={signTransactionMutation.isPending}
+                type="submit"
+              >
+                Mint
+              </Button>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
