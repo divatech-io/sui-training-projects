@@ -1,3 +1,3 @@
-export type SuiTipJar = {
+export type RpcTipJar = {
   total: number;
 };

@@ -2,11 +2,12 @@ import { SuiIcon } from "./ui/icons";
 import { LoaderCircle } from "lucide-react";
 import { fromMist } from "@/lib/sui";
 import { useEstimatedBalanceQuery } from "@/hooks/useEstimatedBalanceQuery";
-import { FAUCET_OBJECT_ID } from "@/config/objects";
+import { useNetworkVariables } from "@/config/network";
 
 export function EstimatedBalance() {
+  const networkVariables = useNetworkVariables();
   const estimatedBalanceQuery = useEstimatedBalanceQuery({
-    faucet: FAUCET_OBJECT_ID,
+    faucetId: networkVariables.faucetId,
   });
 
   if (estimatedBalanceQuery.isPending)

@@ -1,45 +1,47 @@
-import { VOTING_PACKAGE_OBJECT_ID } from "@/config/objects";
-import type { Proposal, SuiProposal } from "@/types";
+import type { Proposal, RpcProposal } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { graphql } from "@mysten/sui/graphql/schemas/latest";
 import { gqlClient } from "@/config/graphql";
+import { useNetworkVariables } from "@/config/network";
 
 export function useProposalsQuery() {
+  const networkVariables = useNetworkVariables();
+
   return useQuery({
-    queryKey: ["proposals"],
-    queryFn: fetchGraphQLData,
+    queryKey: ["proposals", networkVariables.votingPackageId],
+    queryFn: async () => {
+      return await fetchObjects({
+        type: `${networkVariables.votingPackageId}::voting::Proposal`,
+      });
+    },
     select: function (data): Proposal[] {
-      return data.objects.edges.map(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (x: any) => {
+      return data.objects.edges
+        .map((x) => {
+          if (!x.node.asMoveObject?.contents) return undefined;
+
           const proposalFields = x.node.asMoveObject.contents
-            .json as SuiProposal;
+            .json as RpcProposal;
+
           return {
             id: proposalFields.id,
             no: parseInt(proposalFields.no),
             yes: parseInt(proposalFields.yes),
             statement: proposalFields.statement,
           } as Proposal;
-        }
-      );
+        })
+        .filter((x) => !!x);
     },
   });
 }
 
-const fetchGraphQLData = async () => {
+async function fetchObjects({ type }: { type: string }) {
   const query = graphql(`
     query {
-      objects(filter: { type: "${VOTING_PACKAGE_OBJECT_ID}::voting::Proposal" }) {
+      objects(filter: { type: "${type}" }) {
         edges {
           node {
-            address
-            version
-            digest
             asMoveObject {
               contents {
-                type {
-                  repr
-                }
                 json
               }
             }
@@ -54,8 +56,8 @@ const fetchGraphQLData = async () => {
   });
 
   if (!response.data) {
-    throw new Error("Network response was not ok");
+    throw new Error("Request failed");
   }
 
   return response.data;
-};
+}

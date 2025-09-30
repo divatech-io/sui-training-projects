@@ -1,7 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { FileIcon } from "lucide-react";
-import { useCurrentAccount } from "@mysten/dapp-kit";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,8 +16,9 @@ import { Input } from "./ui/input";
 import { Transaction } from "@mysten/sui/transactions";
 import { useDisclosure } from "@/hooks/useDisclosure";
 import { useQueryClient } from "@tanstack/react-query";
-import { VOTING_PACKAGE_OBJECT_ID } from "@/config/objects";
 import { usePerformEnokiTransaction } from "@/hooks/usePerformEnokiTransaction";
+import { useNetworkVariables } from "@/config/network";
+import { useCurrentAccount } from "@mysten/dapp-kit";
 
 const formSchema = z.object({
   statement: z.string().min(3).max(256),
@@ -27,7 +27,7 @@ const formSchema = z.object({
 export function CreateProposalButton() {
   const performTransactionMutation = usePerformEnokiTransaction();
   const queryClient = useQueryClient();
-
+  const networkVariables = useNetworkVariables();
   const currentAccount = useCurrentAccount();
 
   const dialog = useDisclosure();
@@ -40,11 +40,9 @@ export function CreateProposalButton() {
   });
 
   function onSubmit(variables: z.infer<typeof formSchema>) {
-    if (!currentAccount) return;
-
     const tx = new Transaction();
     tx.moveCall({
-      target: `${VOTING_PACKAGE_OBJECT_ID}::voting::create_proposal`,
+      target: `${networkVariables.votingPackageId}::voting::create_proposal`,
       arguments: [tx.pure.string(variables.statement)],
     });
 
@@ -52,7 +50,7 @@ export function CreateProposalButton() {
       transaction: tx,
       enoki: {
         allowedMoveCallTargets: [
-          `${VOTING_PACKAGE_OBJECT_ID}::voting::create_proposal`,
+          `${networkVariables.votingPackageId}::voting::create_proposal`,
         ],
         allowedAddresses: undefined,
       },
@@ -64,6 +62,8 @@ export function CreateProposalButton() {
       },
     });
   }
+
+  if (!currentAccount) return null;
 
   return (
     <>

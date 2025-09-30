@@ -1,11 +1,11 @@
-import type { SuiTipJar } from "@/types";
+import type { RpcTipJar } from "@/types";
 import { useSuiClientQuery } from "@mysten/dapp-kit";
 
-export function useTotalAmountQuery({ tipJar }: { tipJar: string }) {
+export function useTotalAmountQuery({ tipJarId }: { tipJarId: string }) {
   return useSuiClientQuery(
     "getObject",
     {
-      id: tipJar,
+      id: tipJarId,
       options: {
         showContent: true,
       },
@@ -15,7 +15,7 @@ export function useTotalAmountQuery({ tipJar }: { tipJar: string }) {
         if (data.data?.content?.dataType !== "moveObject") {
           return undefined;
         }
-        return (data.data.content.fields as SuiTipJar).total;
+        return (data.data.content.fields as RpcTipJar).total;
       },
     }
   );

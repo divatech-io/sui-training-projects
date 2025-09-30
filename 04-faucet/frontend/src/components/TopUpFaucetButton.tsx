@@ -16,9 +16,10 @@ import { Input } from "./ui/input";
 import { useDisclosure } from "@/hooks/useDisclosure";
 import { useQueryClient } from "@tanstack/react-query";
 import { Transaction } from "@mysten/sui/transactions";
-import { FAUCET_OBJECT_ID, FAUCET_PACKAGE_OBJECT_ID } from "@/config/objects";
 import { toMist } from "@/lib/sui";
 import { usePerformTransaction } from "@/hooks/usePerformTransaction";
+import { useNetworkVariables } from "@/config/network";
+import { useCurrentAccount } from "@mysten/dapp-kit";
 
 const formSchema = z.object({
   amount: z.coerce.number<number>().min(0.01),
@@ -27,6 +28,8 @@ const formSchema = z.object({
 export function TopUpFaucetButton() {
   const performTransactionMutation = usePerformTransaction();
   const queryClient = useQueryClient();
+  const networkVariables = useNetworkVariables();
+  const currentAccount = useCurrentAccount();
 
   const dialog = useDisclosure();
 
@@ -42,8 +45,8 @@ export function TopUpFaucetButton() {
     const coin = tx.splitCoins(tx.gas, [toMist(variables.amount)]);
 
     tx.moveCall({
-      target: `${FAUCET_PACKAGE_OBJECT_ID}::faucet::top_up_faucet`,
-      arguments: [tx.object(FAUCET_OBJECT_ID), tx.object(coin)],
+      target: `${networkVariables.faucetPackageId}::faucet::top_up_faucet`,
+      arguments: [tx.object(networkVariables.faucetId), tx.object(coin)],
     });
 
     performTransactionMutation.mutate({
@@ -56,6 +59,8 @@ export function TopUpFaucetButton() {
       },
     });
   }
+
+  if (!currentAccount) return null;
 
   return (
     <>

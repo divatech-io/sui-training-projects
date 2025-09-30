@@ -1,16 +1,18 @@
 import { useOwnedNftsQuery } from "@/hooks/useOwnedNftsQuery";
 import type { Nft } from "@/types";
-import type { WalletAccount } from "@mysten/wallet-standard";
 import { LoaderCircleIcon } from "lucide-react";
 import { Button } from "./ui/button";
 import React from "react";
+import { useCurrentAccount } from "@mysten/dapp-kit";
 
-type NftListProps = {
-  account: WalletAccount;
-};
+export function NftList() {
+  const currentAccount = useCurrentAccount();
+  const ownedNftsQuery = useOwnedNftsQuery({
+    ownerAddress: currentAccount?.address,
+  });
 
-export function NftList({ account }: NftListProps) {
-  const ownedNftsQuery = useOwnedNftsQuery({ owner: account.address });
+  if (!currentAccount)
+    return <div>Please connect wallet to see your NFTs 💸</div>;
 
   if (ownedNftsQuery.isPending)
     return <LoaderCircleIcon className="animate-spin" />;
@@ -32,10 +34,13 @@ export function NftList({ account }: NftListProps) {
         ))}
       </div>
       <Button
-        disabled={!ownedNftsQuery.hasNextPage}
+        disabled={!ownedNftsQuery.hasNextPage || ownedNftsQuery.isFetching}
         onClick={() => ownedNftsQuery.fetchNextPage()}
       >
         Load more
+        {ownedNftsQuery.isFetchingNextPage && (
+          <LoaderCircleIcon className="animate-spin" />
+        )}
       </Button>
     </div>
   );

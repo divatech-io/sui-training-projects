@@ -1,11 +1,11 @@
 import { useSuiClientInfiniteQuery } from "@mysten/dapp-kit";
 import type { DynamicFieldInfo } from "@mysten/sui/client";
 
-export function useMessageIdsQuery({ guestbook }: { guestbook: string }) {
+export function useMessageIdsQuery({ guestbookId }: { guestbookId: string }) {
   return useSuiClientInfiniteQuery(
     "getDynamicFields",
     {
-      parentId: guestbook,
+      parentId: guestbookId,
       limit: 20,
     },
     {

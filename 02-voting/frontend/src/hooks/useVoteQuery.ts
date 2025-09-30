@@ -1,29 +1,29 @@
-import type { SuiVote, Vote } from "@/types";
+import type { RpcVote, Vote } from "@/types";
 import { useSuiClientQuery } from "@mysten/dapp-kit";
 
 export function useVoteQuery({
-  proposal,
-  account,
+  proposalId,
+  voterAddress,
 }: {
-  proposal: string;
-  account?: string;
+  proposalId: string;
+  voterAddress?: string;
 }) {
   return useSuiClientQuery(
     "getDynamicFieldObject",
     {
-      parentId: proposal,
+      parentId: proposalId,
       name: {
         type: "address",
-        value: account,
+        value: voterAddress!,
       },
     },
     {
-      enabled: !!account,
+      enabled: !!voterAddress,
       select: function (data): Vote | null {
         if (data.error) return null;
         if (data.data?.content?.dataType !== "moveObject") return null;
 
-        return (data.data.content.fields as SuiVote).value ? "yes" : "no";
+        return (data.data.content.fields as RpcVote).value ? "yes" : "no";
       },
     }
   );

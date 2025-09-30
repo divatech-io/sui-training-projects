@@ -15,9 +15,10 @@ import {
 import { Input } from "./ui/input";
 import { Transaction } from "@mysten/sui/transactions";
 import { useDisclosure } from "@/hooks/useDisclosure";
-import { NFT_MINTER_PACKAGE_OBJECT_ID } from "@/config/objects";
 import { usePerformEnokiTransaction } from "@/hooks/usePerformEnokiTransaction";
 import { useQueryClient } from "@tanstack/react-query";
+import { useNetworkVariables } from "@/config/network";
+import { useCurrentAccount } from "@mysten/dapp-kit";
 
 const formSchema = z.object({
   photoUrl: z.url(),
@@ -27,6 +28,8 @@ const formSchema = z.object({
 export function MintNftButton() {
   const performTransactionMutation = usePerformEnokiTransaction();
   const queryClient = useQueryClient();
+  const networkVariables = useNetworkVariables();
+  const currentAccount = useCurrentAccount();
 
   const dialog = useDisclosure();
 
@@ -41,7 +44,7 @@ export function MintNftButton() {
   async function onSubmit(variables: z.infer<typeof formSchema>) {
     const tx = new Transaction();
     tx.moveCall({
-      target: `${NFT_MINTER_PACKAGE_OBJECT_ID}::nft::mint`,
+      target: `${networkVariables.nftMinterPackageId}::nft::mint`,
       arguments: [
         tx.pure.string(variables.name),
         tx.pure.string(variables.photoUrl),
@@ -51,7 +54,9 @@ export function MintNftButton() {
     performTransactionMutation.mutate({
       transaction: tx,
       enoki: {
-        allowedMoveCallTargets: [`${NFT_MINTER_PACKAGE_OBJECT_ID}::nft::mint`],
+        allowedMoveCallTargets: [
+          `${networkVariables.nftMinterPackageId}::nft::mint`,
+        ],
         allowedAddresses: undefined,
       },
       onSign: async () => {
@@ -62,6 +67,8 @@ export function MintNftButton() {
       },
     });
   }
+
+  if (!currentAccount) return null;
 
   return (
     <>

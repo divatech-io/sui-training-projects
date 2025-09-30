@@ -1,4 +1,4 @@
-export type SuiNft = {
+export type RpcNft = {
   name: string;
   metadata_url: string;
 };

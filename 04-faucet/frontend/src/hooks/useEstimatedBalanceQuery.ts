@@ -1,11 +1,11 @@
-import type { SuiFaucet } from "@/types";
+import type { RpcFaucet } from "@/types";
 import { useSuiClientQuery } from "@mysten/dapp-kit";
 
-export function useEstimatedBalanceQuery({ faucet }: { faucet: string }) {
+export function useEstimatedBalanceQuery({ faucetId }: { faucetId: string }) {
   return useSuiClientQuery(
     "getObject",
     {
-      id: faucet,
+      id: faucetId,
       options: {
         showContent: true,
       },
@@ -15,7 +15,7 @@ export function useEstimatedBalanceQuery({ faucet }: { faucet: string }) {
         if (data.data?.content?.dataType !== "moveObject") {
           return undefined;
         }
-        return (data.data.content.fields as SuiFaucet).balance;
+        return (data.data.content.fields as RpcFaucet).balance;
       },
     }
   );

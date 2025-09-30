@@ -1,11 +1,11 @@
-import type { SuiMessage } from "@/types";
+import type { RpcMessage } from "@/types";
 import { useSuiClientQuery } from "@mysten/dapp-kit";
 
-export function useMessageByIdQuery({ objectId }: { objectId: string }) {
+export function useMessageByIdQuery({ messageId }: { messageId: string }) {
   return useSuiClientQuery(
     "getObject",
     {
-      id: objectId,
+      id: messageId,
       options: {
         showContent: true,
       },
@@ -14,7 +14,7 @@ export function useMessageByIdQuery({ objectId }: { objectId: string }) {
       select: (data) => {
         const content = data.data?.content;
         if (content?.dataType === "moveObject") {
-          return (content.fields as SuiMessage).value;
+          return (content.fields as RpcMessage).value;
         }
       },
     }

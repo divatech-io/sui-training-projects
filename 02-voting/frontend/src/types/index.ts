@@ -1,10 +1,10 @@
-export type SuiVote = {
+export type RpcVote = {
   value: boolean;
 };
 
 export type Vote = "yes" | "no";
 
-export type SuiProposal = {
+export type RpcProposal = {
   id: string;
   no: string;
   yes: string;

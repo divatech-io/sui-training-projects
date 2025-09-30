@@ -2,37 +2,35 @@ import { Button } from "./ui/button";
 import { DownloadIcon, LoaderCircleIcon, XCircleIcon } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Transaction } from "@mysten/sui/transactions";
-import type { WalletAccount } from "@mysten/wallet-standard";
 import { useIsAlreadyClaimedQuery } from "@/hooks/useIsAlreadyClaimedQuery";
-import { FAUCET_OBJECT_ID, FAUCET_PACKAGE_OBJECT_ID } from "@/config/objects";
 import { usePerformEnokiTransaction } from "@/hooks/usePerformEnokiTransaction";
+import { useNetworkVariables } from "@/config/network";
+import { useCurrentAccount } from "@mysten/dapp-kit";
 
-type GetTokensButtonProps = {
-  account: WalletAccount;
-};
-
-export function GetTokensButton({ account }: GetTokensButtonProps) {
+export function GetTokensButton() {
   const performTransactionMutation = usePerformEnokiTransaction();
   const queryClient = useQueryClient();
+  const networkVariables = useNetworkVariables();
+  const currentAccount = useCurrentAccount();
 
   const isAlreadyClaimedQuery = useIsAlreadyClaimedQuery({
-    faucet: FAUCET_OBJECT_ID,
-    account: account.address,
+    faucetId: networkVariables.faucetId,
+    accountAddress: currentAccount?.address,
   });
 
   function onClick() {
     const tx = new Transaction();
 
     tx.moveCall({
-      target: `${FAUCET_PACKAGE_OBJECT_ID}::faucet::get_tokes`,
-      arguments: [tx.object(FAUCET_OBJECT_ID)],
+      target: `${networkVariables.faucetPackageId}::faucet::get_tokes`,
+      arguments: [tx.object(networkVariables.faucetId)],
     });
 
     performTransactionMutation.mutate({
       transaction: tx,
       enoki: {
         allowedMoveCallTargets: [
-          `${FAUCET_PACKAGE_OBJECT_ID}::faucet::get_tokes`,
+          `${networkVariables.faucetPackageId}::faucet::get_tokes`,
         ],
         allowedAddresses: undefined,
       },
@@ -42,14 +40,18 @@ export function GetTokensButton({ account }: GetTokensButtonProps) {
     });
   }
 
+  if (!currentAccount) return null;
+
   if (isAlreadyClaimedQuery.isPending)
     return <LoaderCircleIcon className="animate-spin" />;
+
   if (isAlreadyClaimedQuery.isError)
     return (
       <Button variant={"destructive"}>
         Error <XCircleIcon />
       </Button>
     );
+
   if (isAlreadyClaimedQuery.data) return <Button disabled>Claimed</Button>;
 
   return (

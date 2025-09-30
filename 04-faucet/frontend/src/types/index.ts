@@ -1,3 +1,3 @@
-export type SuiFaucet = {
+export type RpcFaucet = {
   balance: number;
 };

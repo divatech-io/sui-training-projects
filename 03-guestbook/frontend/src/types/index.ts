@@ -1,3 +1,3 @@
-export type SuiMessage = {
+export type RpcMessage = {
   value: string;
 };

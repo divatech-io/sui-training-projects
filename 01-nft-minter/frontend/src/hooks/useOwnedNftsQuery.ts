@@ -1,26 +1,33 @@
-import { NFT_MINTER_PACKAGE_OBJECT_ID } from "@/config/objects";
-import type { Nft, SuiNft } from "@/types";
+import { useNetworkVariables } from "@/config/network";
+import type { Nft, RpcNft } from "@/types";
 import { useSuiClientInfiniteQuery } from "@mysten/dapp-kit";
 import type { SuiObjectResponse } from "@mysten/sui/client";
 
-export function useOwnedNftsQuery({ owner }: { owner: string }) {
+export function useOwnedNftsQuery({
+  ownerAddress,
+}: {
+  ownerAddress: string | undefined;
+}) {
+  const networkVariables = useNetworkVariables();
+
   return useSuiClientInfiniteQuery(
     "getOwnedObjects",
     {
-      owner,
+      owner: ownerAddress!,
       filter: {
         MatchAll: [
           {
-            StructType: `${NFT_MINTER_PACKAGE_OBJECT_ID}::nft::NFT`,
+            StructType: `${networkVariables.nftMinterPackageId}::nft::NFT`,
           },
         ],
       },
-      limit: 20,
+      limit: 16,
       options: {
         showContent: true,
       },
     },
     {
+      enabled: !!ownerAddress,
       select: (data) => {
         return {
           ...data,
@@ -39,7 +46,7 @@ function transformData(src: SuiObjectResponse[]): Nft[] {
     .map((x) => {
       const content = x.data?.content;
       if (content?.dataType === "moveObject") {
-        const fields = content.fields as SuiNft;
+        const fields = content.fields as RpcNft;
 
         return {
           name: fields.name,

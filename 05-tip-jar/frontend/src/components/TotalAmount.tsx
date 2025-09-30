@@ -2,11 +2,12 @@ import { useTotalAmountQuery } from "@/hooks/useTotalAmountQuery";
 import { SuiIcon } from "./ui/icons";
 import { LoaderCircle } from "lucide-react";
 import { fromMist } from "@/lib/sui";
-import { TIP_JAR_OBJECT_ID } from "@/config/objects";
+import { useNetworkVariables } from "@/config/network";
 
 export function TotalAmount() {
+  const networkVariables = useNetworkVariables();
   const totalAmountQuery = useTotalAmountQuery({
-    tipJar: TIP_JAR_OBJECT_ID,
+    tipJarId: networkVariables.tipJarId,
   });
 
   if (totalAmountQuery.isPending)

@@ -17,8 +17,9 @@ import { useDisclosure } from "@/hooks/useDisclosure";
 import { useQueryClient } from "@tanstack/react-query";
 import { Transaction } from "@mysten/sui/transactions";
 import { toMist } from "@/lib/sui";
-import { TIP_JAR_OBJECT_ID, TIP_JAR_PACKAGE_OBJECT_ID } from "@/config/objects";
 import { usePerformTransaction } from "@/hooks/usePerformTransaction";
+import { useNetworkVariables } from "@/config/network";
+import { useCurrentAccount } from "@mysten/dapp-kit";
 
 const formSchema = z.object({
   amount: z.coerce.number<number>().min(0.01),
@@ -27,6 +28,8 @@ const formSchema = z.object({
 export function LeaveTipButton() {
   const performTransactionMutation = usePerformTransaction();
   const queryClient = useQueryClient();
+  const networkVariables = useNetworkVariables();
+  const currentAccount = useCurrentAccount();
 
   const dialog = useDisclosure();
 
@@ -42,8 +45,8 @@ export function LeaveTipButton() {
     const coin = tx.splitCoins(tx.gas, [toMist(variables.amount)]);
 
     tx.moveCall({
-      target: `${TIP_JAR_PACKAGE_OBJECT_ID}::tip_jar::receive_sui`,
-      arguments: [tx.object(TIP_JAR_OBJECT_ID), tx.object(coin)],
+      target: `${networkVariables.tipJarPackageId}::tip_jar::receive_sui`,
+      arguments: [tx.object(networkVariables.tipJarId), tx.object(coin)],
     });
 
     performTransactionMutation.mutate({
@@ -56,6 +59,8 @@ export function LeaveTipButton() {
       },
     });
   }
+
+  if (!currentAccount) return null;
 
   return (
     <>

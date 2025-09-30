@@ -1,22 +1,23 @@
 import { useSuiClientQuery } from "@mysten/dapp-kit";
 
 export function useIsAlreadyClaimedQuery({
-  faucet,
-  account,
+  faucetId,
+  accountAddress,
 }: {
-  faucet: string;
-  account: string;
+  faucetId: string;
+  accountAddress: string | undefined;
 }) {
   return useSuiClientQuery(
     "getDynamicFieldObject",
     {
-      parentId: faucet,
+      parentId: faucetId,
       name: {
         type: "address",
-        value: account,
+        value: accountAddress!,
       },
     },
     {
+      enabled: !!accountAddress,
       select: (data) => {
         return !data.error;
       },

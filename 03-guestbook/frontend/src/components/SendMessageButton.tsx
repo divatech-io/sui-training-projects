@@ -16,11 +16,9 @@ import { Input } from "./ui/input";
 import { useDisclosure } from "@/hooks/useDisclosure";
 import { Transaction } from "@mysten/sui/transactions";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  GUESTBOOK_PACKAGE_OBJECT_ID,
-  GUESTBOOK_OBJECT_ID,
-} from "@/config/objects";
 import { usePerformEnokiTransaction } from "@/hooks/usePerformEnokiTransaction";
+import { useNetworkVariables } from "@/config/network";
+import { useCurrentAccount } from "@mysten/dapp-kit";
 
 const formSchema = z.object({
   message: z.string().min(3).max(99),
@@ -29,6 +27,8 @@ const formSchema = z.object({
 export function SendMessageButton() {
   const performTransactionMutation = usePerformEnokiTransaction();
   const queryClient = useQueryClient();
+  const networkVariables = useNetworkVariables();
+  const currentAccount = useCurrentAccount();
 
   const dialog = useDisclosure();
 
@@ -42,9 +42,9 @@ export function SendMessageButton() {
   function onSubmit(variables: z.infer<typeof formSchema>) {
     const tx = new Transaction();
     tx.moveCall({
-      target: `${GUESTBOOK_PACKAGE_OBJECT_ID}::guestbook::leave_message`,
+      target: `${networkVariables.guestbookPackageId}::guestbook::leave_message`,
       arguments: [
-        tx.object(GUESTBOOK_OBJECT_ID),
+        tx.object(networkVariables.guestbookId),
         tx.pure.string(variables.message),
       ],
     });
@@ -53,7 +53,7 @@ export function SendMessageButton() {
       transaction: tx,
       enoki: {
         allowedMoveCallTargets: [
-          `${GUESTBOOK_PACKAGE_OBJECT_ID}::guestbook::leave_message`,
+          `${networkVariables.guestbookPackageId}::guestbook::leave_message`,
         ],
         allowedAddresses: undefined,
       },
@@ -65,6 +65,8 @@ export function SendMessageButton() {
       },
     });
   }
+
+  if (!currentAccount) return null;
 
   return (
     <>
