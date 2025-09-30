@@ -1,10 +1,10 @@
 import { NFT_MINTER_PACKAGE_OBJECT_ID } from "@/config/objects";
 import type { Nft, SuiNft } from "@/types";
-import { useSuiClientQuery } from "@mysten/dapp-kit";
+import { useSuiClientInfiniteQuery } from "@mysten/dapp-kit";
 import type { SuiObjectResponse } from "@mysten/sui/client";
 
 export function useOwnedNftsQuery({ owner }: { owner: string }) {
-  return useSuiClientQuery(
+  return useSuiClientInfiniteQuery(
     "getOwnedObjects",
     {
       owner,
@@ -15,15 +15,19 @@ export function useOwnedNftsQuery({ owner }: { owner: string }) {
           },
         ],
       },
+      limit: 6,
       options: {
         showContent: true,
       },
     },
     {
-      select: (paginatedData) => {
+      select: (data) => {
         return {
-          ...paginatedData,
-          data: transformData(paginatedData.data),
+          ...data,
+          pages: data.pages.map((x) => ({
+            ...x,
+            data: transformData(x.data),
+          })),
         };
       },
     }
