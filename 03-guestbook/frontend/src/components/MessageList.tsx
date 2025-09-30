@@ -2,6 +2,8 @@ import { GUESTBOOK_OBJECT_ID } from "@/config/objects";
 import { useMessageByIdQuery } from "@/hooks/useMessageByIdQuery";
 import { useMessageIdsQuery } from "@/hooks/useMessageIdsQuery";
 import { LoaderCircleIcon } from "lucide-react";
+import { Button } from "./ui/button";
+import React from "react";
 
 export function MessageList() {
   const messagesObjectIdQuery = useMessageIdsQuery({
@@ -13,15 +15,26 @@ export function MessageList() {
 
   if (messagesObjectIdQuery.isError) return <div>Smth. went wrong ⛔</div>;
 
-  const messagesObjectId = messagesObjectIdQuery.data.data;
-  if (!messagesObjectId.length)
+  if (!messagesObjectIdQuery.data.pages[0]?.data.length)
     return <div>There are no messages in guestbook 😔</div>;
 
   return (
-    <div className="w-full flex flex-col gap-2">
-      {messagesObjectId.map((objectId) => (
-        <MessageListItem key={objectId} objectId={objectId} />
-      ))}
+    <div className="flex flex-col gap-4 items-start">
+      <div className="w-full flex flex-col gap-2">
+        {messagesObjectIdQuery.data.pages.map((page, index) => (
+          <React.Fragment key={index}>
+            {page.data.map((objectId) => (
+              <MessageListItem key={objectId} objectId={objectId} />
+            ))}
+          </React.Fragment>
+        ))}
+      </div>
+      <Button
+        disabled={!messagesObjectIdQuery.hasNextPage}
+        onClick={() => messagesObjectIdQuery.fetchNextPage()}
+      >
+        Load more
+      </Button>
     </div>
   );
 }
