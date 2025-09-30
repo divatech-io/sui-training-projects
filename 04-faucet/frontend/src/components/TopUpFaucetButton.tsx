@@ -1,11 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { UploadIcon } from "lucide-react";
-import {
-  useCurrentAccount,
-  useSignAndExecuteTransaction,
-  useSuiClient,
-} from "@mysten/dapp-kit";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,21 +13,19 @@ import {
   FormMessage,
 } from "./ui/form";
 import { Input } from "./ui/input";
-import useDisclosure from "@/hooks/useDisclosure";
+import { useDisclosure } from "@/hooks/useDisclosure";
 import { useQueryClient } from "@tanstack/react-query";
 import { Transaction } from "@mysten/sui/transactions";
 import { FAUCET_OBJECT_ID, FAUCET_PACKAGE_OBJECT_ID } from "@/config/objects";
+import { usePerformEnokiTransaction } from "@/hooks/usePerformEnokiTransaction";
 
 const formSchema = z.object({
   amount: z.coerce.number<number>().min(0.01),
 });
 
 export function TopUpFaucetButton() {
+  const performTransactionMutation = usePerformEnokiTransaction();
   const queryClient = useQueryClient();
-
-  const signAndExecuteTransactionMutation = useSignAndExecuteTransaction();
-  const suiClient = useSuiClient();
-  const currentAccount = useCurrentAccount();
 
   const dialog = useDisclosure();
 
@@ -44,8 +37,6 @@ export function TopUpFaucetButton() {
   });
 
   function onSubmit(variables: z.infer<typeof formSchema>) {
-    if (!currentAccount) return;
-
     const tx = new Transaction();
     const coin = tx.splitCoins(tx.gas, [variables.amount * 1000000000]);
 
@@ -54,20 +45,21 @@ export function TopUpFaucetButton() {
       arguments: [tx.object(FAUCET_OBJECT_ID), tx.object(coin)],
     });
 
-    signAndExecuteTransactionMutation.mutate(
-      {
-        transaction: tx,
-        chain: "sui:testnet",
+    performTransactionMutation.mutate({
+      transaction: tx,
+      enoki: {
+        allowedMoveCallTargets: [
+          `${FAUCET_PACKAGE_OBJECT_ID}::faucet::top_up_faucet`,
+        ],
+        allowedAddresses: undefined,
       },
-      {
-        onSuccess: (tx) => {
-          dialog.onClose();
-          suiClient.waitForTransaction({ digest: tx.digest }).then(async () => {
-            await queryClient.refetchQueries();
-          });
-        },
-      }
-    );
+      onSign: async () => {
+        dialog.onClose();
+      },
+      onTransactionWait: async () => {
+        await queryClient.refetchQueries();
+      },
+    });
   }
 
   return (
@@ -98,7 +90,7 @@ export function TopUpFaucetButton() {
                 )}
               />
               <Button
-                disabled={signAndExecuteTransactionMutation.isPending}
+                disabled={performTransactionMutation.isPending}
                 type="submit"
               >
                 Top Up

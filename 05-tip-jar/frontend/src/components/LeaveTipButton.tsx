@@ -1,11 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { CoffeeIcon } from "lucide-react";
-import {
-  useCurrentAccount,
-  useSignAndExecuteTransaction,
-  useSuiClient,
-} from "@mysten/dapp-kit";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,22 +13,20 @@ import {
   FormMessage,
 } from "./ui/form";
 import { Input } from "./ui/input";
-import useDisclosure from "@/hooks/useDisclosure";
+import { useDisclosure } from "@/hooks/useDisclosure";
 import { useQueryClient } from "@tanstack/react-query";
 import { Transaction } from "@mysten/sui/transactions";
 import { toMist } from "@/lib/sui";
 import { TIP_JAR_OBJECT_ID, TIP_JAR_PACKAGE_OBJECT_ID } from "@/config/objects";
+import { usePerformEnokiTransaction } from "@/hooks/usePerformEnokiTransaction";
 
 const formSchema = z.object({
   amount: z.coerce.number<number>().min(0.01),
 });
 
 export function LeaveTipButton() {
+  const performTransactionMutation = usePerformEnokiTransaction();
   const queryClient = useQueryClient();
-
-  const signAndExecuteTransactionMutation = useSignAndExecuteTransaction();
-  const suiClient = useSuiClient();
-  const currentAccount = useCurrentAccount();
 
   const dialog = useDisclosure();
 
@@ -45,8 +38,6 @@ export function LeaveTipButton() {
   });
 
   function onSubmit(variables: z.infer<typeof formSchema>) {
-    if (!currentAccount) return;
-
     const tx = new Transaction();
     const coin = tx.splitCoins(tx.gas, [toMist(variables.amount)]);
 
@@ -55,20 +46,21 @@ export function LeaveTipButton() {
       arguments: [tx.object(TIP_JAR_OBJECT_ID), tx.object(coin)],
     });
 
-    signAndExecuteTransactionMutation.mutate(
-      {
-        transaction: tx,
-        chain: "sui:testnet",
+    performTransactionMutation.mutate({
+      transaction: tx,
+      enoki: {
+        allowedMoveCallTargets: [
+          `${TIP_JAR_PACKAGE_OBJECT_ID}::tip_jar::receive_sui`,
+        ],
+        allowedAddresses: undefined,
       },
-      {
-        onSuccess: (tx) => {
-          dialog.onClose();
-          suiClient.waitForTransaction({ digest: tx.digest }).then(async () => {
-            await queryClient.refetchQueries();
-          });
-        },
-      }
-    );
+      onSign: async () => {
+        dialog.onClose();
+      },
+      onTransactionWait: async () => {
+        await queryClient.refetchQueries();
+      },
+    });
   }
 
   return (
@@ -99,7 +91,7 @@ export function LeaveTipButton() {
                 )}
               />
               <Button
-                disabled={signAndExecuteTransactionMutation.isPending}
+                disabled={performTransactionMutation.isPending}
                 type="submit"
               >
                 Pay

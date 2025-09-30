@@ -1,11 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { FileIcon } from "lucide-react";
-import {
-  useCurrentAccount,
-  useSignAndExecuteTransaction,
-  useSuiClient,
-} from "@mysten/dapp-kit";
+import { useCurrentAccount } from "@mysten/dapp-kit";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,19 +15,19 @@ import {
 } from "./ui/form";
 import { Input } from "./ui/input";
 import { Transaction } from "@mysten/sui/transactions";
-import useDisclosure from "@/hooks/useDisclosure";
+import { useDisclosure } from "@/hooks/useDisclosure";
 import { useQueryClient } from "@tanstack/react-query";
 import { VOTING_PACKAGE_OBJECT_ID } from "@/config/objects";
+import { usePerformEnokiTransaction } from "@/hooks/usePerformEnokiTransaction";
 
 const formSchema = z.object({
   statement: z.string().min(3).max(256),
 });
 
 export function CreateProposalButton() {
+  const performTransactionMutation = usePerformEnokiTransaction();
   const queryClient = useQueryClient();
 
-  const signAndExecuteTransactionMutation = useSignAndExecuteTransaction();
-  const suiClient = useSuiClient();
   const currentAccount = useCurrentAccount();
 
   const dialog = useDisclosure();
@@ -52,20 +48,21 @@ export function CreateProposalButton() {
       arguments: [tx.pure.string(variables.statement)],
     });
 
-    signAndExecuteTransactionMutation.mutate(
-      {
-        transaction: tx,
-        chain: "sui:testnet",
+    performTransactionMutation.mutate({
+      transaction: tx,
+      enoki: {
+        allowedMoveCallTargets: [
+          `${VOTING_PACKAGE_OBJECT_ID}::voting::create_proposal`,
+        ],
+        allowedAddresses: undefined,
       },
-      {
-        onSuccess: (tx) => {
-          dialog.onClose();
-          suiClient.waitForTransaction({ digest: tx.digest }).then(async () => {
-            await queryClient.refetchQueries();
-          });
-        },
-      }
-    );
+      onSign: async () => {
+        dialog.onClose();
+      },
+      onTransactionWait: async () => {
+        await queryClient.refetchQueries();
+      },
+    });
   }
 
   return (
@@ -95,7 +92,7 @@ export function CreateProposalButton() {
                 )}
               />
               <Button
-                disabled={signAndExecuteTransactionMutation.isPending}
+                disabled={performTransactionMutation.isPending}
                 type="submit"
               >
                 Create

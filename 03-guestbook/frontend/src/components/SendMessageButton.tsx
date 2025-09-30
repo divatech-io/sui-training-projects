@@ -1,11 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { SendIcon } from "lucide-react";
-import {
-  useCurrentAccount,
-  useSignAndExecuteTransaction,
-  useSuiClient,
-} from "@mysten/dapp-kit";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,24 +13,22 @@ import {
   FormMessage,
 } from "./ui/form";
 import { Input } from "./ui/input";
-import useDisclosure from "@/hooks/useDisclosure";
+import { useDisclosure } from "@/hooks/useDisclosure";
 import { Transaction } from "@mysten/sui/transactions";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   GUESTBOOK_PACKAGE_OBJECT_ID,
   GUESTBOOK_OBJECT_ID,
 } from "@/config/objects";
+import { usePerformEnokiTransaction } from "@/hooks/usePerformEnokiTransaction";
 
 const formSchema = z.object({
   message: z.string().min(3).max(99),
 });
 
 export function SendMessageButton() {
+  const performTransactionMutation = usePerformEnokiTransaction();
   const queryClient = useQueryClient();
-
-  const signAndExecuteTransactionMutation = useSignAndExecuteTransaction();
-  const suiClient = useSuiClient();
-  const currentAccount = useCurrentAccount();
 
   const dialog = useDisclosure();
 
@@ -47,8 +40,6 @@ export function SendMessageButton() {
   });
 
   function onSubmit(variables: z.infer<typeof formSchema>) {
-    if (!currentAccount) return;
-
     const tx = new Transaction();
     tx.moveCall({
       target: `${GUESTBOOK_PACKAGE_OBJECT_ID}::guestbook::leave_message`,
@@ -58,20 +49,21 @@ export function SendMessageButton() {
       ],
     });
 
-    signAndExecuteTransactionMutation.mutate(
-      {
-        transaction: tx,
-        chain: "sui:testnet",
+    performTransactionMutation.mutate({
+      transaction: tx,
+      enoki: {
+        allowedMoveCallTargets: [
+          `${GUESTBOOK_PACKAGE_OBJECT_ID}::guestbook::leave_message`,
+        ],
+        allowedAddresses: undefined,
       },
-      {
-        onSuccess: (tx) => {
-          dialog.onClose();
-          suiClient.waitForTransaction({ digest: tx.digest }).then(async () => {
-            await queryClient.refetchQueries();
-          });
-        },
-      }
-    );
+      onSign: async () => {
+        dialog.onClose();
+      },
+      onTransactionWait: async () => {
+        await queryClient.refetchQueries();
+      },
+    });
   }
 
   return (
@@ -101,7 +93,7 @@ export function SendMessageButton() {
                 )}
               />
               <Button
-                disabled={signAndExecuteTransactionMutation.isPending}
+                disabled={performTransactionMutation.isPending}
                 type="submit"
               >
                 Send

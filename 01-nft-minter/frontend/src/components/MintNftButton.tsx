@@ -1,7 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { PlusIcon } from "lucide-react";
-import { useCurrentAccount } from "@mysten/dapp-kit";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,10 +14,10 @@ import {
 } from "./ui/form";
 import { Input } from "./ui/input";
 import { Transaction } from "@mysten/sui/transactions";
-import useDisclosure from "@/hooks/useDisclosure";
+import { useDisclosure } from "@/hooks/useDisclosure";
 import { NFT_MINTER_PACKAGE_OBJECT_ID } from "@/config/objects";
-import { queryClient } from "@/config/tanstack-query";
 import { usePerformEnokiTransaction } from "@/hooks/usePerformEnokiTransaction";
+import { useQueryClient } from "@tanstack/react-query";
 
 const formSchema = z.object({
   photoUrl: z.url(),
@@ -27,7 +26,7 @@ const formSchema = z.object({
 
 export function MintNftButton() {
   const performTransactionMutation = usePerformEnokiTransaction();
-  const currentAccount = useCurrentAccount();
+  const queryClient = useQueryClient();
 
   const dialog = useDisclosure();
 
@@ -40,8 +39,6 @@ export function MintNftButton() {
   });
 
   async function onSubmit(variables: z.infer<typeof formSchema>) {
-    if (!currentAccount) return;
-
     const tx = new Transaction();
     tx.moveCall({
       target: `${NFT_MINTER_PACKAGE_OBJECT_ID}::nft::mint`,

@@ -2,15 +2,12 @@ import { useProposalsQuery } from "@/hooks/useProposalsQuery";
 import { CheckIcon, LoaderCircleIcon } from "lucide-react";
 import { Button } from "./ui/button";
 import type { Proposal } from "@/types";
-import {
-  useCurrentAccount,
-  useSignAndExecuteTransaction,
-  useSuiClient,
-} from "@mysten/dapp-kit";
+import { useCurrentAccount } from "@mysten/dapp-kit";
 import { VOTING_PACKAGE_OBJECT_ID } from "@/config/objects";
 import { Transaction } from "@mysten/sui/transactions";
 import { useQueryClient } from "@tanstack/react-query";
 import { useVoteQuery } from "@/hooks/useVoteQuery";
+import { usePerformEnokiTransaction } from "@/hooks/usePerformEnokiTransaction";
 
 export function ProposalsList() {
   const proposalsQuery = useProposalsQuery();
@@ -36,10 +33,9 @@ type ProposalListItemProps = {
 };
 
 function ProposalListItem({ src }: ProposalListItemProps) {
+  const performTransactionMutation = usePerformEnokiTransaction();
   const queryClient = useQueryClient();
 
-  const signAndExecuteTransactionMutation = useSignAndExecuteTransaction();
-  const suiClient = useSuiClient();
   const currentAccount = useCurrentAccount();
 
   const voteQuery = useVoteQuery({
@@ -48,27 +44,22 @@ function ProposalListItem({ src }: ProposalListItemProps) {
   });
 
   function onClick(vote: "yes" | "no") {
-    if (!currentAccount) return;
-
     const tx = new Transaction();
     tx.moveCall({
       target: `${VOTING_PACKAGE_OBJECT_ID}::voting::vote`,
       arguments: [tx.object(src.id), tx.pure.bool(vote === "yes")],
     });
 
-    signAndExecuteTransactionMutation.mutate(
-      {
-        transaction: tx,
-        chain: "sui:testnet",
+    performTransactionMutation.mutate({
+      transaction: tx,
+      enoki: {
+        allowedMoveCallTargets: [`${VOTING_PACKAGE_OBJECT_ID}::voting::vote`],
+        allowedAddresses: undefined,
       },
-      {
-        onSuccess: (tx) => {
-          suiClient.waitForTransaction({ digest: tx.digest }).then(async () => {
-            await queryClient.refetchQueries();
-          });
-        },
-      }
-    );
+      onTransactionWait: async () => {
+        await queryClient.refetchQueries();
+      },
+    });
   }
 
   const disabled = !currentAccount || voteQuery !== null;
