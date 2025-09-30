@@ -17,14 +17,15 @@ import { useDisclosure } from "@/hooks/useDisclosure";
 import { useQueryClient } from "@tanstack/react-query";
 import { Transaction } from "@mysten/sui/transactions";
 import { FAUCET_OBJECT_ID, FAUCET_PACKAGE_OBJECT_ID } from "@/config/objects";
-import { usePerformEnokiTransaction } from "@/hooks/usePerformEnokiTransaction";
+import { toMist } from "@/lib/sui";
+import { usePerformTransaction } from "@/hooks/usePerformTransaction";
 
 const formSchema = z.object({
   amount: z.coerce.number<number>().min(0.01),
 });
 
 export function TopUpFaucetButton() {
-  const performTransactionMutation = usePerformEnokiTransaction();
+  const performTransactionMutation = usePerformTransaction();
   const queryClient = useQueryClient();
 
   const dialog = useDisclosure();
@@ -38,7 +39,7 @@ export function TopUpFaucetButton() {
 
   function onSubmit(variables: z.infer<typeof formSchema>) {
     const tx = new Transaction();
-    const coin = tx.splitCoins(tx.gas, [variables.amount * 1000000000]);
+    const coin = tx.splitCoins(tx.gas, [toMist(variables.amount)]);
 
     tx.moveCall({
       target: `${FAUCET_PACKAGE_OBJECT_ID}::faucet::top_up_faucet`,
@@ -47,13 +48,7 @@ export function TopUpFaucetButton() {
 
     performTransactionMutation.mutate({
       transaction: tx,
-      enoki: {
-        allowedMoveCallTargets: [
-          `${FAUCET_PACKAGE_OBJECT_ID}::faucet::top_up_faucet`,
-        ],
-        allowedAddresses: undefined,
-      },
-      onSign: async () => {
+      onSignAndExecute: async () => {
         dialog.onClose();
       },
       onTransactionWait: async () => {

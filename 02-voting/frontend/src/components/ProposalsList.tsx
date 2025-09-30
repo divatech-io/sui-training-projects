@@ -62,7 +62,7 @@ function ProposalListItem({ src }: ProposalListItemProps) {
     });
   }
 
-  const disabled = !currentAccount || voteQuery !== null;
+  const disabled = !currentAccount || voteQuery.data !== null;
 
   return (
     <div className="rounded-md overflow-hidden border w-full px-3 py-2 wrap-normal empty:hidden flex flex-col gap-6">

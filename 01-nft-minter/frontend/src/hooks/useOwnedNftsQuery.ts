@@ -15,7 +15,7 @@ export function useOwnedNftsQuery({ owner }: { owner: string }) {
           },
         ],
       },
-      limit: 8,
+      limit: 20,
       options: {
         showContent: true,
       },

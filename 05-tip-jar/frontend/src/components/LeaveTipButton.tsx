@@ -18,14 +18,14 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Transaction } from "@mysten/sui/transactions";
 import { toMist } from "@/lib/sui";
 import { TIP_JAR_OBJECT_ID, TIP_JAR_PACKAGE_OBJECT_ID } from "@/config/objects";
-import { usePerformEnokiTransaction } from "@/hooks/usePerformEnokiTransaction";
+import { usePerformTransaction } from "@/hooks/usePerformTransaction";
 
 const formSchema = z.object({
   amount: z.coerce.number<number>().min(0.01),
 });
 
 export function LeaveTipButton() {
-  const performTransactionMutation = usePerformEnokiTransaction();
+  const performTransactionMutation = usePerformTransaction();
   const queryClient = useQueryClient();
 
   const dialog = useDisclosure();
@@ -48,13 +48,7 @@ export function LeaveTipButton() {
 
     performTransactionMutation.mutate({
       transaction: tx,
-      enoki: {
-        allowedMoveCallTargets: [
-          `${TIP_JAR_PACKAGE_OBJECT_ID}::tip_jar::receive_sui`,
-        ],
-        allowedAddresses: undefined,
-      },
-      onSign: async () => {
+      onSignAndExecute: async () => {
         dialog.onClose();
       },
       onTransactionWait: async () => {

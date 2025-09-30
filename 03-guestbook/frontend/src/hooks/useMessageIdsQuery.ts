@@ -6,7 +6,7 @@ export function useMessageIdsQuery({ guestbook }: { guestbook: string }) {
     "getDynamicFields",
     {
       parentId: guestbook,
-      limit: 8,
+      limit: 20,
     },
     {
       select: (data) => {
