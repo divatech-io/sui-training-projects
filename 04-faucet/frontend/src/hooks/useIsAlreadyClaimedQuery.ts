@@ -8,18 +8,17 @@ export function useIsAlreadyClaimedQuery({
   account: string;
 }) {
   return useSuiClientQuery(
-    "getDynamicFields",
+    "getDynamicFieldObject",
     {
       parentId: faucet,
+      name: {
+        type: "address",
+        value: account,
+      },
     },
     {
-      select: (paginatedData) => {
-        let isAlreadyClaimed = false;
-        paginatedData.data.forEach((x) => {
-          if (x.name.value === account) isAlreadyClaimed = true;
-        });
-
-        return isAlreadyClaimed;
+      select: (data) => {
+        return !data.error;
       },
     }
   );

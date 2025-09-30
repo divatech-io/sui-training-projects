@@ -1,3 +1,4 @@
+import { NFT_MINTER_PACKAGE_OBJECT_ID } from "@/config/objects";
 import type { Nft, SuiNft } from "@/types";
 import { useSuiClientQuery } from "@mysten/dapp-kit";
 import type { SuiObjectResponse } from "@mysten/sui/client";
@@ -10,8 +11,7 @@ export function useOwnedNftsQuery({ owner }: { owner: string }) {
       filter: {
         MatchAll: [
           {
-            StructType:
-              "0x3a11a1a2c85f62b9b461949b840568c026e518200bd3ccdd872cfa4e4ba188ad::nft::NFT",
+            StructType: `${NFT_MINTER_PACKAGE_OBJECT_ID}::nft::NFT`,
           },
         ],
       },

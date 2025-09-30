@@ -27,13 +27,7 @@ export function GetTokensButton({ account }: GetTokensButtonProps) {
 
     tx.moveCall({
       target: `${FAUCET_PACKAGE_OBJECT_ID}::faucet::get_tokes`,
-      arguments: [
-        tx.sharedObjectRef({
-          objectId: FAUCET_OBJECT_ID,
-          mutable: true,
-          initialSharedVersion: "349179981",
-        }),
-      ],
+      arguments: [tx.object(FAUCET_OBJECT_ID)],
     });
 
     signAndExecuteTransactionMutation.mutate(

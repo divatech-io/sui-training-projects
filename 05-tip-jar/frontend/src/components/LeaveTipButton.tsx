@@ -52,14 +52,7 @@ export function LeaveTipButton() {
 
     tx.moveCall({
       target: `${TIP_JAR_PACKAGE_OBJECT_ID}::tip_jar::receive_sui`,
-      arguments: [
-        tx.sharedObjectRef({
-          objectId: TIP_JAR_OBJECT_ID,
-          mutable: true,
-          initialSharedVersion: "349179978",
-        }),
-        tx.object(coin),
-      ],
+      arguments: [tx.object(TIP_JAR_OBJECT_ID), tx.object(coin)],
     });
 
     signAndExecuteTransactionMutation.mutate(
@@ -69,14 +62,13 @@ export function LeaveTipButton() {
       },
       {
         onSuccess: (tx) => {
+          dialog.onClose();
           suiClient.waitForTransaction({ digest: tx.digest }).then(async () => {
             await queryClient.refetchQueries();
           });
         },
       }
     );
-
-    dialog.onClose();
   }
 
   return (

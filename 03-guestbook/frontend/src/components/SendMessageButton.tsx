@@ -53,11 +53,7 @@ export function SendMessageButton() {
     tx.moveCall({
       target: `${GUESTBOOK_PACKAGE_OBJECT_ID}::guestbook::leave_message`,
       arguments: [
-        tx.sharedObjectRef({
-          objectId: GUESTBOOK_OBJECT_ID,
-          mutable: true,
-          initialSharedVersion: "349179980",
-        }),
+        tx.object(GUESTBOOK_OBJECT_ID),
         tx.pure.string(variables.message),
       ],
     });
@@ -69,14 +65,13 @@ export function SendMessageButton() {
       },
       {
         onSuccess: (tx) => {
+          dialog.onClose();
           suiClient.waitForTransaction({ digest: tx.digest }).then(async () => {
             await queryClient.refetchQueries();
           });
         },
       }
     );
-
-    dialog.onClose();
   }
 
   return (

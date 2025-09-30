@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
-import { PlusIcon } from "lucide-react";
+import { FileIcon } from "lucide-react";
 import {
   useCurrentAccount,
   useSignAndExecuteTransaction,
@@ -21,14 +21,13 @@ import { Input } from "./ui/input";
 import { Transaction } from "@mysten/sui/transactions";
 import useDisclosure from "@/hooks/useDisclosure";
 import { useQueryClient } from "@tanstack/react-query";
-import { NFT_MINTER_PACKAGE_OBJECT_ID } from "@/config/objects";
+import { VOTING_PACKAGE_OBJECT_ID } from "@/config/objects";
 
 const formSchema = z.object({
-  photoUrl: z.url(),
-  name: z.string().min(3).max(100),
+  statement: z.string().min(3).max(256),
 });
 
-export function MintNftButton() {
+export function CreateProposalButton() {
   const queryClient = useQueryClient();
 
   const signAndExecuteTransactionMutation = useSignAndExecuteTransaction();
@@ -40,21 +39,17 @@ export function MintNftButton() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      photoUrl: "",
-      name: "",
+      statement: "",
     },
   });
 
-  async function onSubmit(variables: z.infer<typeof formSchema>) {
+  function onSubmit(variables: z.infer<typeof formSchema>) {
     if (!currentAccount) return;
 
     const tx = new Transaction();
     tx.moveCall({
-      target: `${NFT_MINTER_PACKAGE_OBJECT_ID}::nft::mint`,
-      arguments: [
-        tx.pure.string(variables.name),
-        tx.pure.string(variables.photoUrl),
-      ],
+      target: `${VOTING_PACKAGE_OBJECT_ID}::voting::create_proposal`,
+      arguments: [tx.pure.string(variables.statement)],
     });
 
     signAndExecuteTransactionMutation.mutate(
@@ -76,40 +71,24 @@ export function MintNftButton() {
   return (
     <>
       <Button onClick={dialog.onOpen}>
-        Mint NFT <PlusIcon />
+        Create Proposal <FileIcon />
       </Button>
       <Dialog open={dialog.isOpen} onOpenChange={dialog.onOpenChange}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Mint NFT</DialogTitle>
+            <DialogTitle>Create Proposal</DialogTitle>
           </DialogHeader>
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="photoUrl"
+                name="statement"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Photo URL</FormLabel>
+                    <FormLabel>Statement</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="https://example.com/image.png"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="My brand new NFT" {...field} />
+                      <Input placeholder="Do you agree?" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -119,7 +98,7 @@ export function MintNftButton() {
                 disabled={signAndExecuteTransactionMutation.isPending}
                 type="submit"
               >
-                Mint
+                Create
               </Button>
             </form>
           </Form>

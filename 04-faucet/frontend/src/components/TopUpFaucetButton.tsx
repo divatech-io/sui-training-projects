@@ -51,14 +51,7 @@ export function TopUpFaucetButton() {
 
     tx.moveCall({
       target: `${FAUCET_PACKAGE_OBJECT_ID}::faucet::top_up_faucet`,
-      arguments: [
-        tx.sharedObjectRef({
-          objectId: FAUCET_OBJECT_ID,
-          mutable: true,
-          initialSharedVersion: "349179981",
-        }),
-        tx.object(coin),
-      ],
+      arguments: [tx.object(FAUCET_OBJECT_ID), tx.object(coin)],
     });
 
     signAndExecuteTransactionMutation.mutate(
@@ -68,14 +61,13 @@ export function TopUpFaucetButton() {
       },
       {
         onSuccess: (tx) => {
+          dialog.onClose();
           suiClient.waitForTransaction({ digest: tx.digest }).then(async () => {
             await queryClient.refetchQueries();
           });
         },
       }
     );
-
-    dialog.onClose();
   }
 
   return (
