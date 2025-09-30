@@ -1,11 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { PlusIcon } from "lucide-react";
-import {
-  useCurrentAccount,
-  useSignAndExecuteTransaction,
-  useSuiClient,
-} from "@mysten/dapp-kit";
+import { useCurrentAccount } from "@mysten/dapp-kit";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,8 +16,9 @@ import {
 import { Input } from "./ui/input";
 import { Transaction } from "@mysten/sui/transactions";
 import useDisclosure from "@/hooks/useDisclosure";
-import { useQueryClient } from "@tanstack/react-query";
 import { NFT_MINTER_PACKAGE_OBJECT_ID } from "@/config/objects";
+import { queryClient } from "@/config/tanstack-query";
+import { usePerformEnokiTransaction } from "@/hooks/usePerformEnokiTransaction";
 
 const formSchema = z.object({
   photoUrl: z.url(),
@@ -29,10 +26,7 @@ const formSchema = z.object({
 });
 
 export function MintNftButton() {
-  const queryClient = useQueryClient();
-
-  const signAndExecuteTransactionMutation = useSignAndExecuteTransaction();
-  const suiClient = useSuiClient();
+  const performTransactionMutation = usePerformEnokiTransaction();
   const currentAccount = useCurrentAccount();
 
   const dialog = useDisclosure();
@@ -57,20 +51,19 @@ export function MintNftButton() {
       ],
     });
 
-    signAndExecuteTransactionMutation.mutate(
-      {
-        transaction: tx,
-        chain: "sui:testnet",
+    performTransactionMutation.mutate({
+      transaction: tx,
+      enoki: {
+        allowedMoveCallTargets: [`${NFT_MINTER_PACKAGE_OBJECT_ID}::nft::mint`],
+        allowedAddresses: undefined,
       },
-      {
-        onSuccess: (tx) => {
-          dialog.onClose();
-          suiClient.waitForTransaction({ digest: tx.digest }).then(async () => {
-            await queryClient.refetchQueries();
-          });
-        },
-      }
-    );
+      onSign: async () => {
+        dialog.onClose();
+      },
+      onTransactionWait: async () => {
+        await queryClient.refetchQueries();
+      },
+    });
   }
 
   return (
@@ -116,7 +109,7 @@ export function MintNftButton() {
                 )}
               />
               <Button
-                disabled={signAndExecuteTransactionMutation.isPending}
+                disabled={performTransactionMutation.isPending}
                 type="submit"
               >
                 Mint
