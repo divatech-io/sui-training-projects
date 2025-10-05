@@ -1,4 +1,4 @@
-# Sui Tip Jar DApp
+# Sui Tip Jar 2 DApp
 
 ## Objective
 
